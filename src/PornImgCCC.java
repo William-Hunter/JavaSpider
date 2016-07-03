@@ -6,6 +6,9 @@ import org.jsoup.select.Elements;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Created by william on 16-7-2.
@@ -14,16 +17,31 @@ import java.net.URL;
 public class PornImgCCC {
     private String homepage="http://www.u6f4.com";
     private String imgFolder="./PornImg/";
-    private String keyword="";
-
-    public void asia(String keyword) throws IOException {
+	private static Scanner sc=new Scanner(System.in);
+	
+    public void menu() throws IOException {
         File folder=new File(imgFolder);
         if(!folder.exists()){
             folder.mkdir();
         }
-        page(homepage+"/AAtupian/AAtb/asia/",keyword);
+        Document doc= Jsoup.connect("http://www.u6f4.com/AAtupian/AAtb/")
+                .timeout(300000)
+                .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.75 Safari/537.36")
+                .get(); //设置了连接最大超出时间
+        Elements menu=doc.select("ul.nav.nav_menu.mt30>li.menu-item>a");
+        Map<String,String> map=new HashMap<String,String>();      
+        for(int index=0;index<menu.size();index++){
+        	map.put(index+"", menu.get(index).attr("href"));
+        	System.out.println(index+":"+menu.get(index).text());        	       	
+        }                
+        System.out.println("请选择你喜欢的领域");
+        String category=sc.nextLine();
+        System.out.println("请输入你想要的关键词，如果不需要请直接回车");        
+        String keyword=sc.nextLine();
+        page(homepage+map.get(category),keyword);     
     }
     public void page(String pagePath,String keyword) throws IOException {
+    	System.out.println("当前page："+pagePath);       
         Document doc= Jsoup.connect(pagePath)
                 .timeout(300000)
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:33.0) Gecko/20100101 Firefox/33.0")
@@ -39,7 +57,7 @@ public class PornImgCCC {
         }
         Element nextPage=doc.select("a.pagegbk:contains(下一页)").first();
         if(null!=nextPage){
-//            System.out.println("-------nextPage--------\t"+homepage+nextPage.attr("href"));
+            System.out.println("-------nextPage--------\t"+homepage+nextPage.attr("href"));
             page(homepage+nextPage.attr("href"),keyword);
         }
     }
@@ -57,9 +75,7 @@ public class PornImgCCC {
     }
 
     public void downloadImg(String imgSrc,String title) throws IOException {
-
         String fileName=new File(imgSrc).getName();
-
         URL url = new URL(imgSrc);
         // 建立连接
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
